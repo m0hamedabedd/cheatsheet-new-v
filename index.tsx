@@ -4,9 +4,6 @@
 */
 import {GoogleGenAI} from '@google/genai';
 
-// Declare html2pdf globally if using CDN
-declare const html2pdf: any;
-
 // New element selectors based on "Stitch Design"
 const fileInput = document.getElementById('fileInput') as HTMLInputElement;
 const selectFileButtonHero = document.getElementById(
@@ -24,6 +21,9 @@ const actionsArea = document.getElementById('actionsArea') as HTMLDivElement;
 const downloadPdfButton = document.getElementById('downloadPdfButton') as HTMLButtonElement;
 const pdfButtonText = downloadPdfButton.querySelector('.pdf-button-text') as HTMLSpanElement;
 const pdfSpinner = downloadPdfButton.querySelector('.pdf-spinner') as HTMLSpanElement;
+
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY});
 
@@ -50,8 +50,6 @@ selectFileButtonHero.addEventListener('click', () => {
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
 
-  // Reset UI elements for PDF download
-  actionsArea.style.display = 'none';
   generatedHtmlContent = null;
 
   if (!file) {
@@ -85,7 +83,6 @@ fileInput.addEventListener('change', async () => {
     fileNameDisplay.textContent = '';
     clearFileButton.style.display = 'none';
     fileStatusArea.style.display = 'none';
-    actionsArea.style.display = 'none';
     return;
   }
 
@@ -106,7 +103,6 @@ fileInput.addEventListener('change', async () => {
       spinner.style.display = 'none';
       selectFileButtonHero.disabled = false;
       clearFileButton.disabled = false;
-      actionsArea.style.display = 'none';
       return;
     }
 
@@ -122,24 +118,8 @@ fileInput.addEventListener('change', async () => {
       };
 
       const textPromptPart = {
-        text: `Write a one-page cheat sheet for this lecture in an HTML file. Take care of:
--Follow a left-to-right or top-to-bottom flow
--make each section has a unique color in a box-style layout
--Summarize only the most essential information
--Use visuals and layout to enhance memory and clarity
--Short phrases, keywords, or bullet points
--Avoid full sentences unless needed for clarity
--Prioritize clarity over completeness
--Divide your page into logical sections or boxes
--handle equations using 'MathJax' syntax embedded LaTeX-style math equations (e.g., \\(ax^2+bx+c=0\\) or $$E=mc^2$$)
--Use headings, subheadings, and bold titles
-
-Add Visual Elements
--Icons or emojis
--Charts, diagrams but not a schematic to be a real made one
--Color-coding: Assign colors for categories or topics
--Tables for comparisons or structured data
--keep the design compacted in A4 page size you can change font size to fit a one A4 page as to be ready for printing. Ensure the HTML output is self-contained and does not require external CSS files apart from what's needed for MathJax. The entire content should be within the body tags.`,
+        text: `Write a one-page cheat sheet for this lecture in an HTML file. Take care of:\n-Follow a left-to-right or top-to-bottom flow\n-make each section has a unique color in a box-style layout\n-Summarize only the most essential information\n-Use visuals and layout to enhance memory and clarity\n-Short phrases, keywords, or bullet points\n-Avoid full sentences unless needed for clarity\n-Prioritize clarity over completeness\n-Divide your page into logical sections or boxes\n-handle equations using 'MathJax' syntax embedded LaTeX-style math equations (e.g., \(ax^2+bx+c=0\) or $E=mc^2$)\n-Use headings, subheadings, and bold titles\n\nAdd Visual Elements\n-Icons or emojis\n-Charts, diagrams but not a schematic to be a real made one\n-Color-coding: Assign colors for categories or topics\n-Tables for comparisons or structured data\n-**CRITICAL:** The entire content MUST fit on a single A4 page when printed. Adjust font sizes, line spacing, and element sizes as needed to ensure compactness and readability within A4 dimensions. Ensure the HTML output is self-contained and uses Tailwind CSS classes for styling. Do not include any <style> tags or external CSS files apart from what's needed for MathJax. The entire content should be within the body tags.`,
+      };
       };
       
       const result = await ai.models.generateContent({
@@ -178,48 +158,32 @@ Add Visual Elements
     src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
   </script>
   <style>
-    body { 
-      font-family: 'Inter', 'Noto Sans', sans-serif; 
-      margin: 10mm; /* A4-like margins */
-      line-height: 1.5; 
-      background-color: #ffffff; /* White background for PDF */
-      color: #000000; /* Black text for PDF */
-      width: 210mm; /* A4 width */
-      box-sizing: border-box;
-      -webkit-print-color-adjust: exact; /* Important for html2pdf to respect colors */
-      print-color-adjust: exact;
+    /* Print-specific styles for A4 */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-size: 10pt; /* Adjust base font size for print */
+        line-height: 1.3; /* Adjust line height for compactness */
+      }
+      /* Ensure elements don't break across pages */
+      h1, h2, h3, h4, h5, h6, p, ul, ol, table, img, svg, .section, div[class*="box"], div[style*="border"] {
+        page-break-inside: avoid !important;
+      }
+      /* Force background colors and images to print */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
     }
-    .section, div[class*="box"], div[style*="border"] { /* Target sections from LLM */
-      border: 1px solid #cccccc; 
-      margin-bottom: 10px; 
-      padding: 10px; 
-      border-radius: 6px; 
-      background-color: #f8f8f8; 
-      page-break-inside: avoid;
-    }
-    h1, h2, h3, h4, h5, h6 { 
-      color: #111111; 
-      page-break-after: avoid;
-      margin-top: 1.2em;
-      margin-bottom: 0.6em;
-    }
-    table { 
-      width: 100%; 
-      border-collapse: collapse; 
-      margin-top: 10px; 
-      page-break-inside: avoid;
-    }
-    th, td { 
-      border: 1px solid #dddddd; 
-      padding: 6px; 
-      text-align: left; 
-    }
-    th { 
-      background-color: #eeeeee; 
-    }
-    img, svg { max-width: 100%; height: auto; } /* Responsive images/SVGs */
-    /* Ensure colors defined by the LLM (e.g., for sections) are maintained for PDF */
-    /* This can be tricky if LLM uses inline styles with !important, but html2pdf tries its best */
   </style>
 </head>
 <body>
@@ -288,25 +252,50 @@ downloadPdfButton.addEventListener('click', async () => {
   downloadPdfButton.disabled = true;
 
   try {
-    const opt = {
-      margin:       [10, 10, 10, 10], // Margin in mm (top, left, bottom, right)
-      filename:     'cheatsheet.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: -window.scrollY },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-    };
+    // Create a temporary, off-screen container for the HTML content
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.width = '210mm'; // A4 width
+    container.innerHTML = generatedHtmlContent;
+    document.body.appendChild(container);
 
-    // If MathJax is expected, give it a moment to render in the html2pdf iframe
-    // This is a common pattern, html2pdf creates an iframe for rendering.
-    // A small delay can help ensure scripts like MathJax complete.
-    // More robust solutions involve waiting for specific MathJax signals if possible from within html2pdf's context.
-    await new Promise(resolve => setTimeout(resolve, 500)); // 0.5s delay for MathJax
+    // Use html2canvas to render the container
+    const canvas = await html2canvas(container, {
+      scale: 2, // Higher scale for better quality
+      useCORS: true,
+      logging: false,
+    });
 
-    await html2pdf().from(generatedHtmlContent).set(opt).save();
+    // Remove the temporary container
+    document.body.removeChild(container);
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    const ratio = canvasWidth / canvasHeight;
+    const imgWidth = pdfWidth;
+    const imgHeight = imgWidth / ratio;
+
+    // Check if the content exceeds the page height
+    if (imgHeight > pdfHeight) {
+        console.warn("Content might be too long for a single page.");
+    }
+
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    pdf.save('cheatsheet.pdf');
+
 
     userMessageArea.textContent = 'Cheatsheet PDF downloaded!';
-    userMessageArea.className = 'mt-4 text-center p-2 text-sm text-green-600 dark:text-green-400'; // Keep success message
+    userMessageArea.className = 'mt-4 text-center p-2 text-sm text-green-600 dark:text-green-400';
 
   } catch (pdfError: unknown) {
     console.error('Error generating PDF:', pdfError);
@@ -368,3 +357,20 @@ homeLink?.addEventListener('click', (e) => {
     aboutSection.style.display = 'none';
   }
 });
+
+// Dark Mode Toggle Logic
+const themeToggleBtn = document.getElementById('theme-toggle');
+const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+// Function to set the theme
+const setTheme = (isDark: boolean) => {
+    if (isDark) {
+        document.documentElement.classList.add('dark');
+        themeToggleLightIcon?.classList.remove('hidden');
+        themeToggleDarkIcon?.classList.add('hidden');
+        localStorage.setItem('color-theme', 'dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+        themeToggleLightIcon?.classList.add('hidden');
+        themeTogg
