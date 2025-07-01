@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Cheatsheet Generator - Modern Design</title>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^0.7.0",
+    "react/": "https://esm.sh/react@^19.1.0/"
+  }
+}
+</script>
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+  <link
+    rel="stylesheet"
+    as="style"
+    onload="this.rel='stylesheet'"
+    href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"
+  />
+  <script src="https://cdn.tailwindcss.com"></script> <!-- Updated Tailwind CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5JJZoqcBnbJRolloRDSNba3HmDOTZwPSBPG6T9xyDEGWNxI5rfO1zz8SoWnAUFLU6vPxeFPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <link rel="stylesheet" href="index.css">
+  <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  <div class="relative flex size-full min-h-screen flex-col bg-slate-50 dark:bg-slate-900 group/design-root overflow-x-hidden" style='font-family: Inter, "Noto Sans", sans-serif;'>
+    <div class="layout-container flex h-full grow flex-col">
+      <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-700 px-10 py-3">
+        <div class="flex items-center gap-4 text-slate-800 dark:text-slate-200">
+          <div class="size-4">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M12.0799 24L4 19.2479L9.95537 8.75216L18.04 13.4961L18.0446 4H29.9554L29.96 13.4961L38.0446 8.75216L44 19.2479L35.92 24L44 28.7521L38.0446 39.2479L29.96 34.5039L29.9554 44H18.0446L18.04 34.5039L9.95537 39.2479L4 28.7521L12.0799 24Z"
+                fill="currentColor"
+              ></path>
+            </svg>
+          </div>
+          <h2 class="text-slate-800 dark:text-slate-200 text-lg font-bold leading-tight tracking-[-0.015em]">Study Aid</h2>
+        </div>
+        <div class="flex flex-1 justify-end gap-8">
+          <div class="flex items-center gap-9">
+            <a class="text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-medium leading-normal" href="#" id="homeLink">Home</a>
+            <a class="text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-medium leading-normal" href="#" id="aboutLink">About & Contact</a>
+          </div>
+        </div>
+      </header>
+      <main class="px-4 sm:px-10 md:px-20 lg:px-40 flex flex-1 justify-center py-5">
+        <div class="layout-content-container flex flex-col max-w-[960px] flex-1" id="mainContent">
+          <div class="@container">
+            <div class="@[480px]:p-4">
+              <div
+                class="flex min-h-[400px] @[480px]:min-h-[480px] flex-col gap-6 @[480px]:gap-8 @[480px]:rounded-xl items-center justify-center p-6 @[480px]:p-8 bg-gradient-to-br from-slate-100 to-sky-100 dark:from-slate-800 dark:to-sky-900 rounded-lg shadow-sm"
+              >
+                <div class="flex flex-col gap-3 text-center">
+                  <h1
+                    class="text-slate-800 dark:text-slate-100 text-3xl @[480px]:text-5xl font-black leading-tight tracking-[-0.033em]"
+                  >
+                    Generate Cheat Sheets from Lecture Notes
+                  </h1>
+                  <h2 class="text-slate-600 dark:text-slate-400 text-sm @[480px]:text-base font-normal leading-normal">
+                    Upload your lecture notes in .txt, .md, or .pdf format and get a concise, one-page HTML cheat sheet.
+                  </h2>
+                </div>
+                <input type="file" id="fileInput" class="hidden" accept=".txt,.md,.pdf">
+                <button
+                  id="selectFileButtonHero"
+                  class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 @[480px]:h-12 @[480px]:px-5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold leading-normal tracking-[0.015em] @[480px]:text-base @[480px]:font-bold @[480px]:leading-normal @[480px]:tracking-[0.015em] transition-colors duration-150 ease-in-out"
+                >
+                  <span class="spinner" style="display: none;"></span>
+                  <span class="button-text truncate">Select Lecture File</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="fileStatusArea" class="mt-6 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg shadow-sm" style="display: none;">
+            <span id="fileNameDisplay" class="text-slate-700 dark:text-slate-300"></span>
+            <button id="clearFileButton" class="ml-4 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm font-medium" aria-label="Remove selected file" style="display: none;">Clear</button>
+          </div>
+          <div id="userMessageArea" class="mt-4 text-center p-3 text-sm rounded-md dark:text-slate-300" aria-live="polite">
+             <!-- User messages will appear here -->
+          </div>
+          <div id="actionsArea" class="mt-4 flex justify-center items-center" style="display: none;">
+            <button id="downloadPdfButton" class="flex min-w-[84px] w-auto max-w-[280px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-green-600 hover:bg-green-700 text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors duration-150 ease-in-out">
+              <span class="pdf-spinner spinner" style="display: none; border-top-color: white !important; width: 0.8rem; height: 0.8rem; margin-right: 0.5rem; border-width: 2px;"></span>
+              <span class="pdf-button-text truncate">Download as PDF</span>
+            </button>
+          </div>
+           <p class="text-slate-600 dark:text-slate-400 text-base font-normal leading-normal pb-3 pt-3 px-4 text-center">
+              Once the file is selected, the system will automatically generate a cheat sheet. You can then view the result in a new tab.
+           </p>
+        </div>
+        <div id="aboutSection" class="max-w-2xl w-full bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 mx-auto" style="display:none; color: #e5eaf1;">
+          <h1 class="text-3xl font-bold mb-4 text-indigo-700 dark:text-indigo-300">Welcome to Smart Cheat Sheet Generator</h1>
+          <p class="mb-6 text-lg">Your digital assistant for turning long lectures into concise, structured, and visually clear cheat sheets.</p>
+          <ul class="list-disc list-inside mb-6 space-y-2">
+            <li>✅ <b>Paste lecture or textbook content</b></li>
+            <li>✅ <b>Automatically extract and organize the key points</b></li>
+            <li>✅ <b>Render clean, one-page cheat sheets with formulas, definitions, and visuals</b></li>
+            <li>✅ <b>Support LaTeX-style equations using MathJax</b></li>
+            <li>✅ <b>Export or print your notes instantly</b></li>
+          </ul>
+          <p class="mb-6" style="color: #e5eaf1;">Built for simplicity and clarity, this tool helps you focus on what matters most — <span class="font-semibold" style="color: #e5eaf1;">understanding and reviewing</span>, not rewriting.</p>
+          <h2 class="text-xl font-semibold mb-2 mt-6">🔍 Who is it for?</h2>
+          <ul class="list-disc list-inside mb-6 space-y-1">
+            <li>📚 University & high school students</li>
+            <li>👨‍🏫 Teachers preparing summaries</li>
+            <li>🤖 Learners of technical fields like math, physics, and engineering</li>
+          </ul>
+          <h2 class="text-xl font-semibold mb-2 mt-6">🛠 How it works</h2>
+          <ol class="list-decimal list-inside mb-6 space-y-1">
+            <li>Paste or write your lecture notes.</li>
+            <li>Choose your cheat sheet style and theme.</li>
+            <li>Click <b>"Generate Cheat Sheet"</b> and get instant results.</li>
+            <li>Export as HTML or PDF — or just print and study!</li>
+          </ol>
+          <h2 class="text-xl font-semibold mb-2 mt-6">💡 Why use this tool?</h2>
+          <ul class="list-disc list-inside mb-6 space-y-1">
+            <li>Saves time on making notes</li>
+            <li>Highlights only the essential information</li>
+            <li>Supports visual learning with icons, diagrams, and math formatting</li>
+          </ul>
+          <div class="border-t border-slate-200 dark:border-slate-600 mt-8 pt-6">
+            <h2 class="text-xl font-semibold mb-2">👋 Contact</h2>
+            <p class="mb-2">Have feedback or want to suggest a feature?</p>
+            <p class="font-semibold text-indigo-700 dark:text-indigo-300">📧 <a href="mailto:m0hamedabedd52@gmail.com" class="underline">m0hamedabedd52@gmail.com</a></p>
+          </div>
+        </div>
+      </main>
+      <footer class="flex justify-center border-t border-slate-200 dark:border-slate-700 mt-auto">
+        <div class="flex max-w-[960px] flex-1 flex-col">
+          <div class="flex flex-col gap-6 px-5 py-10 text-center @container">
+            <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 @[480px]:flex-row @[480px]:justify-around">
+              <a class="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-normal leading-normal min-w-40" href="#">Terms of Service</a>
+              <a class="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-normal leading-normal min-w-40" href="#">Privacy Policy</a>
+            </div>
+            <p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">©2024 Study Aid. Powered by Gemini. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+  <script type="module" src="index.tsx"></script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

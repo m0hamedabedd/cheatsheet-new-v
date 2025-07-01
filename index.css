@@ -1,0 +1,32 @@
+/* Minimal CSS - Tailwind handles most styling */
+
+.spinner {
+  border: 3px solid transparent; /* Base border */
+  border-top-color: currentColor; /* Uses the text color of the parent for the spinning part */
+  border-radius: 50%;
+  width: 1rem; /* 16px */
+  height: 1rem; /* 16px */
+  animation: spin 1s linear infinite;
+  display: inline-block; /* Default, will be controlled by JS */
+  margin-right: 0.5rem; /* Space between spinner and text if spinner is first */
+}
+/* If button-text is first, spinner might need margin-left instead, handled by button structure */
+
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Ensure hidden class works if Tailwind hasn't loaded immediately or for non-Tailwind needs */
+.hidden {
+  display: none !important;
+}
+
+/*
+  The PDF spinner in index.html uses the .spinner class and overrides some styles inline:
+  style="display: none; border-top-color: white !important; width: 0.8rem; height: 0.8rem; margin-right: 0.5rem; border-width: 2px;"
+  This approach is fine, or a dedicated .pdf-spinner class could be defined here if preferred for cleanliness.
+  For now, relying on the inline styles for the PDF spinner within the .spinner base.
+*/

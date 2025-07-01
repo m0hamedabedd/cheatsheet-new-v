@@ -1,0 +1,6 @@
+{
+  "name": "AI Cheatsheet Generator",
+  "description": "Upload your lecture notes or documents and let Gemini AI create a concise, well-structured HTML cheatsheet for you. Opens in a new tab for easy viewing.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
