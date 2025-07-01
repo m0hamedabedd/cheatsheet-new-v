@@ -120,7 +120,6 @@ fileInput.addEventListener('change', async () => {
       const textPromptPart = {
         text: `Write a one-page cheat sheet for this lecture in an HTML file. Take care of:\n-Follow a left-to-right or top-to-bottom flow\n-make each section has a unique color in a box-style layout\n-Summarize only the most essential information\n-Use visuals and layout to enhance memory and clarity\n-Short phrases, keywords, or bullet points\n-Avoid full sentences unless needed for clarity\n-Prioritize clarity over completeness\n-Divide your page into logical sections or boxes\n-handle equations using 'MathJax' syntax embedded LaTeX-style math equations (e.g., \(ax^2+bx+c=0\) or $E=mc^2$)\n-Use headings, subheadings, and bold titles\n\nAdd Visual Elements\n-Icons or emojis\n-Charts, diagrams but not a schematic to be a real made one\n-Color-coding: Assign colors for categories or topics\n-Tables for comparisons or structured data\n-**CRITICAL:** The entire content MUST fit on a single A4 page when printed. Adjust font sizes, line spacing, and element sizes as needed to ensure compactness and readability within A4 dimensions. Ensure the HTML output is self-contained and uses Tailwind CSS classes for styling. Do not include any <style> tags or external CSS files apart from what's needed for MathJax. The entire content should be within the body tags.`,
       };
-      
       const result = await ai.models.generateContent({
         model: 'gemini-2.5-flash-preview-04-17', // Updated model name
         contents: { parts: [filePart, textPromptPart] },
