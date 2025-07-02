@@ -17,13 +17,9 @@ const fileStatusArea = document.getElementById('fileStatusArea') as HTMLDivEleme
 const fileNameDisplay = document.getElementById('fileNameDisplay') as HTMLSpanElement;
 const clearFileButton = document.getElementById('clearFileButton') as HTMLButtonElement;
 
-const actionsArea = document.getElementById('actionsArea') as HTMLDivElement;
-const downloadPdfButton = document.getElementById('downloadPdfButton') as HTMLButtonElement;
-const pdfButtonText = downloadPdfButton.querySelector('.pdf-button-text') as HTMLSpanElement;
-const pdfSpinner = downloadPdfButton.querySelector('.pdf-spinner') as HTMLSpanElement;
 
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+
+
 
 const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY});
 
@@ -118,7 +114,22 @@ fileInput.addEventListener('change', async () => {
       };
 
       const textPromptPart = {
-        text: `Write a one-page cheat sheet for this lecture in an HTML file. Take care of:\n-Follow a left-to-right or top-to-bottom flow\n-make each section has a unique color in a box-style layout\n-Summarize only the most essential information\n-Use visuals and layout to enhance memory and clarity\n-Short phrases, keywords, or bullet points\n-Avoid full sentences unless needed for clarity\n-Prioritize clarity over completeness\n-Divide your page into logical sections or boxes\n-handle equations using 'MathJax' syntax embedded LaTeX-style math equations (e.g., \(ax^2+bx+c=0\) or $E=mc^2$)\n-Use headings, subheadings, and bold titles\n\nAdd Visual Elements\n-Icons or emojis\n-Charts, diagrams but not a schematic to be a real made one\n-Color-coding: Assign colors for categories or topics\n-Tables for comparisons or structured data\n-**CRITICAL:** The entire content MUST fit on a single A4 page when printed. Adjust font sizes, line spacing, and element sizes as needed to ensure compactness and readability within A4 dimensions. Ensure the HTML output is self-contained and uses Tailwind CSS classes for styling. Do not include any <style> tags or external CSS files apart from what's needed for MathJax. The entire content should be within the body tags.`,
+        text: `Generate an **optimal HTML cheat sheet** from the provided lecture content. The goal is to create a highly effective, visually appealing, and easily digestible study aid. Prioritize clarity, conciseness, and intelligent organization.
+
+**Cheat Sheet Design Principles:**
+*   **Intelligent Summarization:** Extract and present only the most essential information. Use concise phrases, keywords, and bullet points. Avoid verbose sentences unless critical for understanding.
+*   **Logical Structure:** Organize content with a clear, intuitive flow (e.g., left-to-right, top-to-bottom).
+*   **Distinct Sections:** Divide the cheat sheet into visually distinct, logical sections or "boxes." Each section should have a unique, complementary background color to enhance readability and separation.
+*   **Clear Hierarchy:** Utilize prominent headings, subheadings, and bold text to establish a clear information hierarchy.
+*   **Visual Reinforcement:** Integrate relevant icons, emojis, or simple, illustrative diagrams (avoid complex schematics) to aid memory and comprehension.
+*   **Mathematical Equations:** Render all mathematical equations using 'MathJax' syntax with standard LaTeX-style formatting (e.g., \(ax^2+bx+c=0\) or $E=mc^2$).
+*   **Effective Color-Coding:** Employ color-coding strategically to highlight categories, topics, or key information.
+*   **Structured Data:** Use tables for presenting comparative data or structured information where appropriate.
+
+**Technical Requirements for HTML Output:**
+*   **Self-Contained:** The entire HTML output must be self-contained within the `<body>` tags.
+*   **Tailwind CSS:** Apply styling exclusively using Tailwind CSS utility classes. Do NOT include any `<style>` tags or external CSS files (except for the MathJax script).
+*   **Readability:** Ensure the final HTML is clean, well-formatted, and easy to read.`,
       };
       const result = await ai.models.generateContent({
         model: 'gemini-2.5-flash-preview-04-17', // Updated model name
@@ -155,34 +166,6 @@ fileInput.addEventListener('change', async () => {
   <script type="text/javascript" id="MathJax-script" async
     src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
   </script>
-  <style>
-    /* Print-specific styles for A4 */
-    @media print {
-      @page {
-        size: A4 portrait;
-        margin: 10mm;
-      }
-      body {
-        width: 210mm;
-        height: 297mm;
-        margin: 0;
-        padding: 0;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        font-size: 10pt; /* Adjust base font size for print */
-        line-height: 1.3; /* Adjust line height for compactness */
-      }
-      /* Ensure elements don't break across pages */
-      h1, h2, h3, h4, h5, h6, p, ul, ol, table, img, svg, .section, div[class*="box"], div[style*="border"] {
-        page-break-inside: avoid !important;
-      }
-      /* Force background colors and images to print */
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-    }
-  </style>
 </head>
 <body>
   ${extractedHtml}
@@ -203,12 +186,11 @@ fileInput.addEventListener('change', async () => {
 
         userMessageArea.textContent = 'Cheatsheet HTML generated and downloaded!';
         userMessageArea.className = 'mt-4 text-center p-2 text-sm text-green-600 dark:text-green-400';
-        actionsArea.style.display = 'flex'; // Show PDF download button area
+        
       } else {
         userMessageArea.textContent =
           'Failed to generate cheatsheet or received an empty response. The model might have had trouble with the content. Please try a different file or try again.';
         userMessageArea.className = 'mt-4 text-center p-2 text-sm text-red-600 dark:text-red-400';
-        actionsArea.style.display = 'none';
       }
     } catch (error: unknown) {
       console.error('Error generating content or processing file:', error);
@@ -216,7 +198,6 @@ fileInput.addEventListener('change', async () => {
         (error as Error)?.message || 'An unknown error occurred';
       userMessageArea.textContent = `An error occurred: ${detailedError}. Please check the console for more details.`;
       userMessageArea.className = 'mt-4 text-center p-2 text-sm text-red-600 dark:text-red-400';
-      actionsArea.style.display = 'none';
     } finally {
       buttonText.textContent = 'Select Lecture File';
       spinner.style.display = 'none';
@@ -232,80 +213,12 @@ fileInput.addEventListener('change', async () => {
     spinner.style.display = 'none';
     selectFileButtonHero.disabled = false;
     clearFileButton.disabled = false;
-    actionsArea.style.display = 'none';
   };
 
   reader.readAsArrayBuffer(file);
 });
 
-downloadPdfButton.addEventListener('click', async () => {
-  if (!generatedHtmlContent) {
-    userMessageArea.textContent = 'No content available to generate PDF.';
-    userMessageArea.className = 'mt-4 text-center p-2 text-sm text-red-600 dark:text-red-400';
-    return;
-  }
 
-  pdfButtonText.textContent = 'Converting...';
-  pdfSpinner.style.display = 'inline-block';
-  downloadPdfButton.disabled = true;
-
-  try {
-    // Create a temporary, off-screen container for the HTML content
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.width = '210mm'; // A4 width
-    container.innerHTML = generatedHtmlContent;
-    document.body.appendChild(container);
-
-    // Use html2canvas to render the container
-    const canvas = await html2canvas(container, {
-      scale: 2, // Higher scale for better quality
-      useCORS: true,
-      logging: false,
-    });
-
-    // Remove the temporary container
-    document.body.removeChild(container);
-
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
-    const ratio = canvasWidth / canvasHeight;
-    const imgWidth = pdfWidth;
-    const imgHeight = imgWidth / ratio;
-
-    // Check if the content exceeds the page height
-    if (imgHeight > pdfHeight) {
-        console.warn("Content might be too long for a single page.");
-    }
-
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-    pdf.save('cheatsheet.pdf');
-
-
-    userMessageArea.textContent = 'Cheatsheet PDF downloaded!';
-    userMessageArea.className = 'mt-4 text-center p-2 text-sm text-green-600 dark:text-green-400';
-
-  } catch (pdfError: unknown) {
-    console.error('Error generating PDF:', pdfError);
-    const detailedError = (pdfError as Error)?.message || 'Unknown PDF generation error';
-    userMessageArea.textContent = `Error generating PDF: ${detailedError}`;
-    userMessageArea.className = 'mt-4 text-center p-2 text-sm text-red-600 dark:text-red-400';
-  } finally {
-    pdfButtonText.textContent = 'Download as PDF';
-    pdfSpinner.style.display = 'none';
-    downloadPdfButton.disabled = false;
-  }
-});
 
 
 clearFileButton.addEventListener('click', () => {
@@ -315,7 +228,6 @@ clearFileButton.addEventListener('click', () => {
   fileStatusArea.style.display = 'none';
   userMessageArea.textContent = '';
   userMessageArea.className = 'mt-4 text-center p-3 text-sm rounded-md dark:text-slate-300';
-  actionsArea.style.display = 'none'; // Hide PDF button
   generatedHtmlContent = null;
 
   if (selectFileButtonHero.disabled) {
@@ -371,4 +283,22 @@ const setTheme = (isDark: boolean) => {
     } else {
         document.documentElement.classList.remove('dark');
         themeToggleLightIcon?.classList.add('hidden');
-        themeTogg
+        themeToggleDarkIcon?.classList.remove('hidden');
+        localStorage.setItem('color-theme', 'light');
+    }
+};
+
+// Initial theme setup
+const currentTheme = localStorage.getItem('color-theme');
+
+if (currentTheme === 'dark' || (!currentTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    setTheme(true);
+} else {
+    setTheme(false);
+}
+
+// Toggle theme on button click
+themeToggleBtn?.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.contains('dark');
+    setTheme(!isDark);
+});
