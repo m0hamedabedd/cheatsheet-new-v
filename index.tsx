@@ -122,7 +122,7 @@ fileInput.addEventListener('change', async () => {
       };
 
       const textPromptPart = {
-        text: `Write a one-page cheat sheet for this lecture in an HTML file. Take care of:
+        text: `Write a one-page cheat sheet for this lecture in a whole HTML file. Take care of:
 -Follow a left-to-right or top-to-bottom flow
 -make each section has a unique color in a box-style layout
 -Summarize only the most essential information
@@ -133,6 +133,8 @@ fileInput.addEventListener('change', async () => {
 -Divide your page into logical sections or boxes
 -handle equations using 'MathJax' syntax embedded LaTeX-style math equations (e.g., \\(ax^2+bx+c=0\\) or $$E=mc^2$$)
 -Use headings, subheadings, and bold titles
+-make it in orgaized and structured way for better readability
+-use suitable and nice fonts and styling for the output page  
 
 Add Visual Elements
 -Icons or emojis
