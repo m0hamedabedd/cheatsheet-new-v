@@ -125,6 +125,7 @@ fileInput.addEventListener('change', async () => {
 *   **Mathematical Equations:** Render all mathematical equations using 'MathJax' syntax with standard LaTeX-style formatting (e.g., \(ax^2+bx+c=0\) or $E=mc^2$).
 *   **Effective Color-Coding:** Employ color-coding strategically to highlight categories, topics, or key information.
 *   **Structured Data:** Use tables for presenting comparative data or structured information where appropriate.
+*   make it in nice ui-ux design 
 
 **Technical Requirements for HTML Output:**
 *   **Self-Contained:** The entire HTML output must be self-contained within the `<body>` tags.
